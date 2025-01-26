@@ -4,9 +4,8 @@ import fs from "fs";
 import { getProfileStats } from "./getProfileStats.js";
 import { getPinnedScores } from "./getPinnedScores.js";
 import { getTopScores } from "./getTopScores.js";
-import { get } from "http";
 
-const url = "https://osu.ppy.sh/users/35516029";
+const profileUrl = "https://osu.ppy.sh/users/35516029";
 
 const main = async () => {
   const browser = await puppeteer.launch({
@@ -16,7 +15,7 @@ const main = async () => {
   const page = await browser.newPage();
 
   try {
-    await page.goto(url, {
+    await page.goto(profileUrl, {
       waitUntil: "networkidle2",
     });
     await page.setViewport({ width: 1920, height: 1080 });
