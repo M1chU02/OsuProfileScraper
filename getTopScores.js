@@ -2,7 +2,7 @@ export const getTopScores = async (page) => {
   console.log("Fetching top scores..."); // Debugging
   // Wait for the specific selector for top plays
   await page.waitForSelector(
-    "body > div.osu-layout__section.osu-layout__section--full > div > div > div > div.osu-page.osu-page--generic-compact > div.user-profile-pages.ui-sortable > div:nth-child(2) > div > div.lazy-load > div:nth-child(4)",
+    "body > div.osu-layout__section.osu-layout__section--full > div > div > div > div.osu-page.osu-page--generic-compact > div.user-profile-pages.ui-sortable > div[data-page-id='top_ranks'] > div > div.lazy-load > div:nth-child(4)",
     {
       timeout: 30000,
     }
@@ -10,14 +10,20 @@ export const getTopScores = async (page) => {
 
   // Fetch top plays
   const topPlays = await page.evaluate(async () => {
-    const loadMoreButton = document.querySelector(
-      "body > div.osu-layout__section.osu-layout__section--full > div > div > div > div.osu-page.osu-page--generic-compact > div.user-profile-pages.ui-sortable > div:nth-child(2) > div > div.lazy-load > div:nth-child(4) > button"
-    );
-    loadMoreButton.click();
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    if (
+      document.querySelector(
+        "body > div.osu-layout__section.osu-layout__section--full > div > div > div > div.osu-page.osu-page--generic-compact > div.user-profile-pages.ui-sortable > div[data-page-id='top_ranks'] > div > div.lazy-load > div:nth-child(4) > button"
+      )
+    ) {
+      const loadMoreButton = document.querySelector(
+        "body > div.osu-layout__section.osu-layout__section--full > div > div > div > div.osu-page.osu-page--generic-compact > div.user-profile-pages.ui-sortable > div[data-page-id='top_ranks'] > div > div.lazy-load > div:nth-child(4) > button"
+      );
+      loadMoreButton.click();
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+    }
 
     const topPlaysElements = document.querySelectorAll(
-      "body > div.osu-layout__section.osu-layout__section--full > div > div > div > div.osu-page.osu-page--generic-compact > div.user-profile-pages.ui-sortable > div:nth-child(2) > div > div.lazy-load > div:nth-child(4) > div"
+      "body > div.osu-layout__section.osu-layout__section--full > div > div > div > div.osu-page.osu-page--generic-compact > div.user-profile-pages.ui-sortable > div[data-page-id='top_ranks'] > div > div.lazy-load > div:nth-child(4) > div"
     );
     return Array.from(topPlaysElements)
       .slice(0, 10)

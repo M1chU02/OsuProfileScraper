@@ -1,5 +1,5 @@
 {
-  "name": "osuscraper",
+  "name": "osuProfileScraper",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -11,6 +11,6 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "puppeteer": "^24.1.0"
+    "puppeteer": "^24.1.1"
   }
 }
