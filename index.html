@@ -10,12 +10,13 @@
       integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg=="
       crossorigin="anonymous"
       referrerpolicy="no-referrer" />
-    <!-- TODO: Add styling -->
+    <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
     <h1>Osu! profile data scraper</h1>
 
-    <!-- TODO: One or multiple profiles selection -->
+    <button id="scrapeProfileLinksBtn">Scrape Profile Links</button>
+    <button id="scrapeProfileDataBtn">Scrape Profile Data</button>
 
     <h3>Scrape data from single profile</h3>
     <p>Scrape data from one profile by entering username or userid</p>
@@ -52,5 +53,7 @@
       profiles. The data that can be scraped includes the user's rank, pp, play
       count, accuracy, and more.
     </p>
+
+    <script src="src/renderer.js"></script>
   </body>
 </html>
