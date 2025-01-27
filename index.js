@@ -1,31 +1,62 @@
 import puppeteer from "puppeteer";
 import fs from "fs";
+import { getProfileLinks } from "./getProfileLinks.js";
 import { getProfileStats } from "./getProfileStats.js";
 import { getPinnedScores } from "./getPinnedScores.js";
 import { getTopScores } from "./getTopScores.js";
 
 const profileUrl = "https://osu.ppy.sh/users/7562902/osu";
+const profilesUrl =
+  "https://osu.ppy.sh/rankings/osu/performance?country=AT&page=3#scores";
 
-const main = async () => {
-  const browser = await puppeteer.launch({
+const scrapeProfileLinks = async () => {
+  const profilesBrowser = await puppeteer.launch({
     args: ["--lang=en-US"],
     headless: false,
   });
-  const page = await browser.newPage();
+  const profilesPage = await profilesBrowser.newPage();
 
   try {
-    await page.goto(profileUrl, {
+    await profilesPage.goto(profilesUrl, {
       waitUntil: "networkidle2",
     });
-    await page.setViewport({ width: 1920, height: 1080 });
-    await page.waitForSelector("body");
+    await profilesPage.setViewport({ width: 1920, height: 1080 });
+    await profilesPage.waitForSelector("body");
 
-    await autoScroll(page);
+    await autoScroll(profilesPage);
+
+    const profileLinks = await getProfileLinks(profilesPage);
+
+    const fileName = "osu_profile_links.json";
+    fs.writeFileSync(fileName, JSON.stringify(profileLinks, null, 2));
+    console.log("Profile links saved");
+  } catch (error) {
+    console.error("Error fetching profiles data:", error);
+  } finally {
+    await profilesBrowser.close();
+  }
+};
+
+const scrapeProfileData = async () => {
+  const profileBrowser = await puppeteer.launch({
+    args: ["--lang=en-US"],
+    headless: false,
+  });
+  const profilePage = await profileBrowser.newPage();
+
+  try {
+    await profilePage.goto(profileUrl, {
+      waitUntil: "networkidle2",
+    });
+    await profilePage.setViewport({ width: 1920, height: 1080 });
+    await profilePage.waitForSelector("body");
+
+    await autoScroll(profilePage);
 
     // Fetch profile stats and pinned scores
-    const profileStats = await getProfileStats(page);
-    const pinnedPlays = await getPinnedScores(page);
-    const topScores = await getTopScores(page);
+    const profileStats = await getProfileStats(profilePage);
+    const pinnedPlays = await getPinnedScores(profilePage);
+    const topScores = await getTopScores(profilePage);
 
     const profileData = {
       profileStats,
@@ -40,11 +71,11 @@ const main = async () => {
   } catch (error) {
     console.error("Error fetching profile data:", error);
   } finally {
-    await browser.close();
+    await profileBrowser.close();
   }
 };
 
-// Function to scroll the page
+// Function to scroll the profile page
 async function autoScroll(page) {
   await page.evaluate(async () => {
     await new Promise((resolve) => {
@@ -64,4 +95,5 @@ async function autoScroll(page) {
   });
 }
 
-main();
+scrapeProfileLinks();
+scrapeProfileData();
