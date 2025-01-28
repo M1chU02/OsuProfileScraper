@@ -19,6 +19,7 @@ function createWindow() {
 
   mainWindow.loadFile("index.html");
 
+  // TODO: Handle passing variables
   // Handle IPC events
   ipcMain.handle("scrape-profile-links", async () => {
     scrapeProfileLinks();

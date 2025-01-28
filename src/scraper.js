@@ -5,10 +5,11 @@ import { getProfileStats } from "./scripts/getProfileStats.js";
 import { getPinnedScores } from "./scripts/getPinnedScores.js";
 import { getTopScores } from "./scripts/getTopScores.js";
 
-const profileUrl = "https://osu.ppy.sh/users/7562902/osu";
+/*const profileUrl = "https://osu.ppy.sh/users/7562902/osu";
 const profilesUrl =
-  "https://osu.ppy.sh/rankings/osu/performance?country=AT&page=3#scores";
+  "https://osu.ppy.sh/rankings/osu/performance?country=AT&page=3#scores";*/
 
+// TODO: Handle passing variables
 export const scrapeProfileLinks = async () => {
   const profilesBrowser = await puppeteer.launch({
     args: ["--lang=en-US"],
@@ -37,6 +38,7 @@ export const scrapeProfileLinks = async () => {
   }
 };
 
+// TODO: Handle passing variables
 export const scrapeProfileData = async () => {
   const profileBrowser = await puppeteer.launch({
     args: ["--lang=en-US"],
