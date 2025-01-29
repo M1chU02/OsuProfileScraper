@@ -5,9 +5,8 @@ import { getProfileStats } from "./scripts/getProfileStats.js";
 import { getPinnedScores } from "./scripts/getPinnedScores.js";
 import { getTopScores } from "./scripts/getTopScores.js";
 
-/*const profileUrl = "https://osu.ppy.sh/users/7562902/osu";
 const profilesUrl =
-  "https://osu.ppy.sh/rankings/osu/performance?country=AT&page=3#scores";*/
+  "https://osu.ppy.sh/rankings/osu/performance?country=AT&page=3#scores";
 
 // TODO: Handle passing variables
 export const scrapeProfileLinks = async () => {
@@ -39,7 +38,11 @@ export const scrapeProfileLinks = async () => {
 };
 
 // TODO: Handle passing variables
-export const scrapeProfileData = async () => {
+export const scrapeProfileData = async (userIdentifier) => {
+  console.log("scrapeProfileData called with userIdentifier:", userIdentifier); // Add this line
+  const profileUrl = `https://osu.ppy.sh/users/${userIdentifier}/osu`;
+  console.log("Generated profileUrl:", profileUrl);
+
   const profileBrowser = await puppeteer.launch({
     args: ["--lang=en-US"],
     headless: false,
@@ -56,9 +59,9 @@ export const scrapeProfileData = async () => {
     await autoScroll(profilePage);
 
     // Fetch profile stats and pinned scores
-    const profileStats = await getProfileStats(profilePage);
-    const pinnedPlays = await getPinnedScores(profilePage);
-    const topScores = await getTopScores(profilePage);
+    const profileStats = await getProfileStats(profilePage, userIdentifier);
+    const pinnedPlays = await getPinnedScores(profilePage, userIdentifier);
+    const topScores = await getTopScores(profilePage, userIdentifier);
 
     const profileData = {
       profileStats,

@@ -1,4 +1,5 @@
-export const getProfileStats = async (page) => {
+export const getProfileStats = async (page, userIdentifier) => {
+  console.log(userIdentifier);
   const profileStats = await page.evaluate(() => {
     let profileName = document.querySelector(
       "body > div.osu-layout__section.osu-layout__section--full > div > div > div > div.osu-page.osu-page--generic-compact > div:nth-child(1) > div.profile-info.profile-info--cover > div.profile-info__details > div.profile-info__info > h1 > span"
