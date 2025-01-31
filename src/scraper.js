@@ -1,9 +1,35 @@
 import puppeteer from "puppeteer";
 import fs from "fs";
+import { getCountries } from "./scripts/getCountries.js";
 import { getProfileLinks } from "./scripts/getProfileLinks.js";
 import { getProfileStats } from "./scripts/getProfileStats.js";
 import { getPinnedScores } from "./scripts/getPinnedScores.js";
 import { getTopScores } from "./scripts/getTopScores.js";
+
+export const scrapeCountriesValues = async () => {
+  const countriesUrl = "https://osu.ppy.sh/rankings/osu/performance";
+  const countriesBrowser = await puppeteer.launch({
+    args: ["--lang=en-US"],
+    headless: false,
+  });
+  const countriesPage = await countriesBrowser.newPage();
+
+  try {
+    await countriesPage.goto(countriesUrl, {
+      waitUntil: "networkidle2",
+    });
+    await countriesPage.setViewport({ width: 1920, height: 1080 });
+    await countriesPage.waitForSelector("body");
+
+    const countriesValues = await getCountries(countriesPage);
+    return countriesValues;
+  } catch (error) {
+    console.error("Error fetching countries data:", error);
+    throw error;
+  } finally {
+    await countriesBrowser.close();
+  }
+};
 
 const profilesUrl =
   "https://osu.ppy.sh/rankings/osu/performance?country=AT&page=3#scores";

@@ -1,7 +1,11 @@
 import { app, BrowserWindow, ipcMain, Menu } from "electron";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
-import { scrapeProfileLinks, scrapeProfileData } from "./scraper.js";
+import {
+  scrapeCountriesValues,
+  scrapeProfileLinks,
+  scrapeProfileData,
+} from "./scraper.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -24,6 +28,11 @@ function createWindow() {
   mainWindow.webContents.openDevTools();
 
   // Handle IPC events
+  ipcMain.handle("scrape-countries-values", async () => {
+    const countryValues = await scrapeCountriesValues();
+    return countryValues;
+  });
+
   ipcMain.handle("scrape-profile-links", async () => {
     scrapeProfileLinks();
   });
