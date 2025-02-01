@@ -33,9 +33,12 @@ function createWindow() {
     return countryValues;
   });
 
-  ipcMain.handle("scrape-profile-links", async () => {
-    scrapeProfileLinks();
-  });
+  ipcMain.handle(
+    "scrape-profile-links",
+    async (event, countryUrl, pageNumber) => {
+      await scrapeProfileLinks(countryUrl, pageNumber);
+    }
+  );
 
   ipcMain.handle("scrape-profile-data", async (event, userIdentifier) => {
     await scrapeProfileData(userIdentifier);

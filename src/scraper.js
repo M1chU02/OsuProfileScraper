@@ -1,10 +1,17 @@
 import puppeteer from "puppeteer";
+import { fileURLToPath } from "url";
+import { dirname, format } from "path";
+import path from "path";
 import fs from "fs";
 import { getCountries } from "./scripts/getCountries.js";
 import { getProfileLinks } from "./scripts/getProfileLinks.js";
 import { getProfileStats } from "./scripts/getProfileStats.js";
 import { getPinnedScores } from "./scripts/getPinnedScores.js";
 import { getTopScores } from "./scripts/getTopScores.js";
+import { count } from "console";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 export const scrapeCountriesValues = async () => {
   const countriesUrl = "https://osu.ppy.sh/rankings/osu/performance";
@@ -31,11 +38,36 @@ export const scrapeCountriesValues = async () => {
   }
 };
 
-const profilesUrl =
-  "https://osu.ppy.sh/rankings/osu/performance?country=AT&page=3#scores";
-
 // TODO: Handle passing variables
-export const scrapeProfileLinks = async () => {
+export const scrapeProfileLinks = async (countryUrl, pageNumber) => {
+  let formattedUrl = "";
+  let formattedUrlGlobal = "";
+  let urlType = "";
+
+  if (countryUrl == "https://osu.ppy.sh/rankings/osu/performance") {
+    console.log("main");
+    if (pageNumber == 1) {
+      console.log("first");
+      formattedUrlGlobal = `${countryUrl}#scores`;
+      urlType = "formattedUrlGlobal";
+    } else {
+      console.log("other");
+      formattedUrlGlobal = `${countryUrl}?page=${pageNumber}#scores`;
+      urlType = "formattedUrlGlobal";
+    }
+  } else {
+    if (pageNumber == 1) {
+      console.log("certain first");
+      formattedUrl = `${countryUrl}#scores`;
+      urlType = "formattedUrl";
+    } else {
+      console.log("certain other");
+      formattedUrl = `${countryUrl}&page=${pageNumber}#scores`;
+      urlType = "formattedUrl";
+    }
+  }
+  console.log("Formatted URL:", formattedUrl || formattedUrlGlobal);
+
   const profilesBrowser = await puppeteer.launch({
     args: ["--lang=en-US"],
     headless: false,
@@ -43,7 +75,8 @@ export const scrapeProfileLinks = async () => {
   const profilesPage = await profilesBrowser.newPage();
 
   try {
-    await profilesPage.goto(profilesUrl, {
+    const urlToVisit = formattedUrl || formattedUrlGlobal;
+    await profilesPage.goto(urlToVisit, {
       waitUntil: "networkidle2",
     });
     await profilesPage.setViewport({ width: 1920, height: 1080 });
@@ -51,9 +84,10 @@ export const scrapeProfileLinks = async () => {
 
     await autoScroll(profilesPage);
 
-    const profileLinks = await getProfileLinks(profilesPage);
+    const profileLinks = await getProfileLinks(profilesPage, urlType);
+    console.log(profileLinks);
 
-    const fileName = "osu_profile_links.json";
+    const fileName = path.join(__dirname, "../export/osu_profile_links.json");
     fs.writeFileSync(fileName, JSON.stringify(profileLinks, null, 2));
     console.log("Profile links saved");
   } catch (error) {
@@ -96,7 +130,7 @@ export const scrapeProfileData = async (userIdentifier) => {
     };
 
     // Save data to a JSON file
-    const fileName = "osu_profile_data.json";
+    const fileName = path.join(__dirname, "../export/osu_profile_data.json");
     fs.writeFileSync(fileName, JSON.stringify(profileData, null, 2));
     console.log("Profile data saved");
   } catch (error) {

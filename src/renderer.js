@@ -39,9 +39,14 @@ scrapeProfileLinksBtn.addEventListener("click", async (event) => {
   event.preventDefault();
   // TODO: Add input validation
   // TODO: Handle country selection
+  let countryUrl = document.getElementById("countrySelect").value;
   let pageNumber = document.getElementById("pageNumber").value;
-  if (pageNumber) {
-    await ipcRenderer.invoke("scrape-profile-links", pageNumber);
+  if (pageNumber && countryUrl) {
+    await window.electron.ipcRenderer.invoke(
+      "scrape-profile-links",
+      countryUrl,
+      pageNumber
+    );
     alert("Profile links scraped and saved!");
   } else {
     alert("Please enter a page number.");
