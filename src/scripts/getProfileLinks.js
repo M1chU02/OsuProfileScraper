@@ -1,5 +1,4 @@
 export const getProfileLinks = async (page, urlType) => {
-  console.log(`URL Type: ${urlType}`);
   if (urlType == "formattedUrlGlobal") {
     const profileLinks = await page.evaluate(async () => {
       const links = document.querySelectorAll(

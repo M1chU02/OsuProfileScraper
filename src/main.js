@@ -5,6 +5,7 @@ import {
   scrapeCountriesValues,
   scrapeProfileLinks,
   scrapeProfileData,
+  scrapeTopScores,
 } from "./scraper.js";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -42,6 +43,10 @@ function createWindow() {
 
   ipcMain.handle("scrape-profile-data", async (event, userIdentifier) => {
     await scrapeProfileData(userIdentifier);
+  });
+
+  ipcMain.handle("scrape-top-scores", async (event, profileLinksArray) => {
+    await scrapeTopScores(profileLinksArray);
   });
 
   // Create a custom menu

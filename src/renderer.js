@@ -37,8 +37,6 @@ scrapeProfileDataBtn.addEventListener("click", async (event) => {
 
 scrapeProfileLinksBtn.addEventListener("click", async (event) => {
   event.preventDefault();
-  // TODO: Add input validation
-  // TODO: Handle country selection
   let countryUrl = document.getElementById("countrySelect").value;
   let pageNumber = document.getElementById("pageNumber").value;
   if (pageNumber && countryUrl) {
@@ -47,7 +45,22 @@ scrapeProfileLinksBtn.addEventListener("click", async (event) => {
       countryUrl,
       pageNumber
     );
-    alert("Profile links scraped and saved!");
+    // Fetch profile links and scrape top scores from each profile
+    try {
+      const response = await fetch("export/osu_profile_links.json");
+      const profileLinksArray = await response.json();
+      console.log(profileLinksArray);
+
+      await window.electron.ipcRenderer.invoke(
+        "scrape-top-scores",
+        profileLinksArray
+      );
+
+      alert("Profile links and top scores scraped and saved!");
+    } catch (error) {
+      console.error("Error fetching profile links:", error);
+      alert("Error fetching profile links.");
+    }
   } else {
     alert("Please enter a page number.");
   }

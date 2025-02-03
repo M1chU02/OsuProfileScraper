@@ -1,6 +1,6 @@
 import puppeteer from "puppeteer";
 import { fileURLToPath } from "url";
-import { dirname, format } from "path";
+import { dirname } from "path";
 import path from "path";
 import fs from "fs";
 import { getCountries } from "./scripts/getCountries.js";
@@ -8,7 +8,6 @@ import { getProfileLinks } from "./scripts/getProfileLinks.js";
 import { getProfileStats } from "./scripts/getProfileStats.js";
 import { getPinnedScores } from "./scripts/getPinnedScores.js";
 import { getTopScores } from "./scripts/getTopScores.js";
-import { count } from "console";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -38,35 +37,28 @@ export const scrapeCountriesValues = async () => {
   }
 };
 
-// TODO: Handle passing variables
 export const scrapeProfileLinks = async (countryUrl, pageNumber) => {
   let formattedUrl = "";
   let formattedUrlGlobal = "";
   let urlType = "";
 
   if (countryUrl == "https://osu.ppy.sh/rankings/osu/performance") {
-    console.log("main");
     if (pageNumber == 1) {
-      console.log("first");
       formattedUrlGlobal = `${countryUrl}#scores`;
       urlType = "formattedUrlGlobal";
     } else {
-      console.log("other");
       formattedUrlGlobal = `${countryUrl}?page=${pageNumber}#scores`;
       urlType = "formattedUrlGlobal";
     }
   } else {
     if (pageNumber == 1) {
-      console.log("certain first");
       formattedUrl = `${countryUrl}#scores`;
       urlType = "formattedUrl";
     } else {
-      console.log("certain other");
       formattedUrl = `${countryUrl}&page=${pageNumber}#scores`;
       urlType = "formattedUrl";
     }
   }
-  console.log("Formatted URL:", formattedUrl || formattedUrlGlobal);
 
   const profilesBrowser = await puppeteer.launch({
     args: ["--lang=en-US"],
@@ -85,7 +77,6 @@ export const scrapeProfileLinks = async (countryUrl, pageNumber) => {
     await autoScroll(profilesPage);
 
     const profileLinks = await getProfileLinks(profilesPage, urlType);
-    console.log(profileLinks);
 
     const fileName = path.join(__dirname, "../export/osu_profile_links.json");
     fs.writeFileSync(fileName, JSON.stringify(profileLinks, null, 2));
@@ -97,11 +88,8 @@ export const scrapeProfileLinks = async (countryUrl, pageNumber) => {
   }
 };
 
-// TODO: Handle passing variables
 export const scrapeProfileData = async (userIdentifier) => {
-  console.log("scrapeProfileData called with userIdentifier:", userIdentifier); // Add this line
   const profileUrl = `https://osu.ppy.sh/users/${userIdentifier}/osu`;
-  console.log("Generated profileUrl:", profileUrl);
 
   const profileBrowser = await puppeteer.launch({
     args: ["--lang=en-US"],
@@ -137,6 +125,73 @@ export const scrapeProfileData = async (userIdentifier) => {
     console.error("Error fetching profile data:", error);
   } finally {
     await profileBrowser.close();
+  }
+};
+
+export const scrapeTopScores = async (profileLinks) => {
+  const browsers = [];
+  const topScoresData = [];
+  const maxConcurrentRequests = 3;
+  let activeRequests = 0;
+  let currentIndex = 0;
+
+  // Launch multiple browsers
+  for (let i = 0; i < maxConcurrentRequests; i++) {
+    const browser = await puppeteer.launch({
+      args: ["--lang=en-US"],
+      headless: false,
+    });
+    browsers.push(browser);
+  }
+
+  const scrapeProfile = async (profileLink, browser) => {
+    const page = await browser.newPage();
+    try {
+      await page.goto(profileLink, {
+        waitUntil: "networkidle2",
+      });
+      await page.setViewport({ width: 1920, height: 1080 });
+      await page.waitForSelector("body");
+
+      const topScores = await getTopScores(page);
+      topScoresData.push({ profileLink, topScores });
+    } catch (error) {
+      console.error(`Error fetching top scores for ${profileLink}:`, error);
+    } finally {
+      await page.close();
+      activeRequests--;
+      processQueue();
+    }
+  };
+
+  const processQueue = () => {
+    while (
+      activeRequests < maxConcurrentRequests &&
+      currentIndex < profileLinks.length
+    ) {
+      const profileLink = profileLinks[currentIndex];
+      const browser = browsers[activeRequests % browsers.length];
+      activeRequests++;
+      currentIndex++;
+      scrapeProfile(profileLink, browser);
+    }
+  };
+
+  processQueue();
+
+  // Wait for all requests to complete
+  while (activeRequests > 0) {
+    await new Promise((resolve) => setTimeout(resolve, 1500));
+  }
+
+  // Save all top scores data to a JSON file
+  const fileName = path.join(__dirname, "../export/osu_top_scores.json");
+  fs.writeFileSync(fileName, JSON.stringify(topScoresData, null, 2));
+  console.log("Top scores data saved");
+
+  // Close all browsers
+  for (const browser of browsers) {
+    await browser.close();
   }
 };
 
