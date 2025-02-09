@@ -19,6 +19,10 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 let scrapeProfileDataBtn = document.getElementById("scrapeProfileDataBtn");
 let scrapeProfileLinksBtn = document.getElementById("scrapeProfileLinksBtn");
+let scrapeNextTopScoresBtn = document.getElementById("scrapeNextTopScoresBtn");
+
+let profileLinksArray = [];
+let currentIndex = 0;
 
 scrapeProfileDataBtn.addEventListener("click", async (event) => {
   event.preventDefault();
@@ -40,23 +44,25 @@ scrapeProfileLinksBtn.addEventListener("click", async (event) => {
   let countryUrl = document.getElementById("countrySelect").value;
   let pageNumber = document.getElementById("pageNumber").value;
   if (pageNumber && countryUrl) {
-    await window.electron.ipcRenderer.invoke(
+    const numLinks = await window.electron.ipcRenderer.invoke(
       "scrape-profile-links",
       countryUrl,
       pageNumber
     );
-    // Fetch profile links and scrape top scores from each profile
+    // Fetch profile links and scrape top scores from the first 5 profiles
     try {
       const response = await fetch("export/osu_profile_links.json");
-      const profileLinksArray = await response.json();
-      console.log(profileLinksArray);
+      profileLinksArray = await response.json();
 
+      currentIndex = 0;
       await window.electron.ipcRenderer.invoke(
         "scrape-top-scores",
-        profileLinksArray
+        profileLinksArray.slice(currentIndex, currentIndex + 5)
       );
 
-      alert("Profile links and top scores scraped and saved!");
+      alert(
+        `Profile links and top scores scraped and saved! ${numLinks} links found.`
+      );
     } catch (error) {
       console.error("Error fetching profile links:", error);
       alert("Error fetching profile links.");
@@ -64,4 +70,28 @@ scrapeProfileLinksBtn.addEventListener("click", async (event) => {
   } else {
     alert("Please enter a page number.");
   }
+});
+
+scrapeNextTopScoresBtn.addEventListener("click", async (event) => {
+  event.preventDefault();
+  if (currentIndex < profileLinksArray.length) {
+    currentIndex += 5;
+    await window.electron.ipcRenderer.invoke(
+      "scrape-top-scores",
+      profileLinksArray.slice(currentIndex, currentIndex + 5)
+    );
+    alert("Next set of top scores scraped and saved!");
+  } else {
+    alert("No more profiles to scrape.");
+  }
+});
+
+// Add a delay mechanism to the button click
+let isButtonDisabled = false;
+scrapeNextTopScoresBtn.addEventListener("click", async (event) => {
+  if (isButtonDisabled) return;
+  isButtonDisabled = true;
+  setTimeout(() => {
+    isButtonDisabled = false;
+  }, 5000); // 5 seconds delay
 });

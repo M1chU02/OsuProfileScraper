@@ -81,8 +81,11 @@ export const scrapeProfileLinks = async (countryUrl, pageNumber) => {
     const fileName = path.join(__dirname, "../export/osu_profile_links.json");
     fs.writeFileSync(fileName, JSON.stringify(profileLinks, null, 2));
     console.log("Profile links saved");
+
+    return profileLinks.length; // Return the number of profile links scraped
   } catch (error) {
     console.error("Error fetching profiles data:", error);
+    return 0;
   } finally {
     await profilesBrowser.close();
   }
@@ -128,12 +131,16 @@ export const scrapeProfileData = async (userIdentifier) => {
   }
 };
 
-export const scrapeTopScores = async (profileLinks) => {
+export const scrapeTopScores = async (
+  profileLinks,
+  startIndex = 0,
+  count = 5
+) => {
   const browsers = [];
   const topScoresData = [];
-  const maxConcurrentRequests = 3;
+  const maxConcurrentRequests = 5;
   let activeRequests = 0;
-  let currentIndex = 0;
+  let currentIndex = startIndex;
 
   // Launch multiple browsers
   for (let i = 0; i < maxConcurrentRequests; i++) {
@@ -153,6 +160,8 @@ export const scrapeTopScores = async (profileLinks) => {
       await page.setViewport({ width: 1920, height: 1080 });
       await page.waitForSelector("body");
 
+      await autoScroll(page);
+
       const topScores = await getTopScores(page);
       topScoresData.push({ profileLink, topScores });
     } catch (error) {
@@ -167,7 +176,8 @@ export const scrapeTopScores = async (profileLinks) => {
   const processQueue = () => {
     while (
       activeRequests < maxConcurrentRequests &&
-      currentIndex < profileLinks.length
+      currentIndex < profileLinks.length &&
+      currentIndex < startIndex + count
     ) {
       const profileLink = profileLinks[currentIndex];
       const browser = browsers[activeRequests % browsers.length];

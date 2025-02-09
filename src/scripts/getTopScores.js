@@ -31,6 +31,11 @@ export const getTopScores = async (page) => {
         const title = topPlay.querySelector(
           ".play-detail__group--top > .play-detail__detail > .play-detail__title"
         ).textContent;
+        const songLink = topPlay.querySelector(
+          ".play-detail__group--top > .play-detail__detail > a"
+        ).href;
+        const songId = songLink.split("/").pop();
+        const directLink = `osu://b/{songId}`;
         const timeAgoElement = topPlay.querySelector(
           ".play-detail__group--top > .play-detail__detail > .play-detail__beatmap-and-time > .play-detail__time > .js-timeago"
         );
@@ -62,6 +67,9 @@ export const getTopScores = async (page) => {
 
         return {
           title,
+          songLink,
+          songId,
+          directLink,
           timeAgo,
           mods,
           accuracy,
