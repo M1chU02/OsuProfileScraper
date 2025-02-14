@@ -23,7 +23,7 @@ function createWindow() {
     },
   });
 
-  mainWindow.loadFile("index.html");
+  mainWindow.loadFile("views/index.html");
 
   // Open the DevTools.
   mainWindow.webContents.openDevTools();
@@ -66,7 +66,7 @@ function createWindow() {
                 contextIsolation: false,
               },
             });
-            aboutWindow.loadFile("about.html");
+            aboutWindow.loadFile("views/about.html");
           },
         },
       ],
